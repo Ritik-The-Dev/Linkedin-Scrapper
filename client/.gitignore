@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+
+# Local environment overrides. .env.example and .env.mock are committed.
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+*.tsbuildinfo

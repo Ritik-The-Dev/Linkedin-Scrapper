@@ -1,0 +1,30 @@
+{
+  "name": "linkedin-lead-extractor",
+  "version": "1.0.0",
+  "description": "LinkedIn Lead Extractor — REST API backed by LinkedIn Voyager + MongoDB",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build":        "tsc --project tsconfig.json",
+    "dev":          "tsx watch src/server.ts",
+    "start":        "node dist/server.js",
+    "type-check":   "tsc --noEmit",
+    "test-profile": "node test-linkedin-profile.js"
+  },
+  "dependencies": {
+    "cors":     "^2.8.6",
+    "dotenv":   "^17.4.2",
+    "exceljs":  "^4.4.0",
+    "express":  "^5.2.1",
+    "mongoose": "^9.9.4",
+    "multer":   "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/cors":    "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer":  "^2.2.0",
+    "@types/node":    "^26.4.0",
+    "tsx":            "^4.23.13",
+    "typescript":     "^7.0.2"
+  }
+}
