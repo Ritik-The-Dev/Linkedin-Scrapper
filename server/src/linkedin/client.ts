@@ -104,42 +104,11 @@ export async function fetchLinkedInProfile(
       method:   'GET',
       redirect: 'manual',
       headers: {
-        // ── Required Voyager headers ──────────────────────────────────────
         'accept':                    'application/vnd.linkedin.normalized+json+2.1',
         'csrf-token':                csrfToken,
         'x-restli-protocol-version': '2.0.0',
-
-        // ── Browser identity headers ──────────────────────────────────────
-        // These are critical — LinkedIn 999 fires when the request looks
-        // too bare compared to a real browser session.
-        'user-agent':      userAgent,
-        'accept-language': 'en-US,en;q=0.9',
-        'accept-encoding': 'gzip, deflate, br',
-        'sec-fetch-dest':  'empty',
-        'sec-fetch-mode':  'cors',
-        'sec-fetch-site':  'same-origin',
-        'origin':          'https://www.linkedin.com',
-        'referer':         `https://www.linkedin.com/in/${publicIdentifier}/`,
-
-        // ── LinkedIn internal tracking (reduces bot-detection score) ──────
-        'x-li-lang':  'en_US',
-        'x-li-track': JSON.stringify({
-          clientVersion:     '1.13.10685',
-          mpVersion:         '1.13.10685',
-          osName:            'web',
-          timezoneOffset:    5.5,
-          timezone:          'Asia/Kolkata',
-          deviceFormFactor:  'DESKTOP',
-          mpName:            'voyager-web',
-          displayDensity:    1,
-          displayWidth:      1920,
-          displayHeight:     1080,
-        }),
-
-        // ── Session cookies ───────────────────────────────────────────────
-        // li_at  = authentication token
-        // JSESSIONID = CSRF token (must also appear in csrf-token header)
-        'cookie': `li_at=${liAt}; JSESSIONID="${jsessionId}"`,
+        'user-agent':                userAgent,
+        'cookie':                    `li_at=${liAt}; JSESSIONID="${jsessionId}"`,
       },
     });
   } catch (networkErr) {
