@@ -31,6 +31,7 @@ and serves previously extracted leads from the database.
 | Environment      | `dotenv`                            |
 | Build            | `tsc` (TypeScript compiler)         |
 | Dev server       | `tsx` (zero-config TS runner)       |
+| Deployment       | Vercel Function (single Express handler) or any Node host |
 
 ---
 
@@ -38,26 +39,39 @@ and serves previously extracted leads from the database.
 
 ```
 linkedin-lead-extractor/
+├── api/
+│   └── index.ts                   ← Vercel Function entry (wraps the Express app)
 ├── src/
 │   ├── routes/
-│   │   └── leads.js               ← Express route definitions
+│   │   └── leads.ts               ← Express route definitions + upload guard
 │   ├── controllers/
-│   │   └── leadController.js      ← HTTP req/res handling only
+│   │   └── leadController.ts      ← HTTP req/res handling only
 │   ├── services/
-│   │   ├── leadService.js         ← Business logic
-│   │   └── excelImportService.js  ← Excel parsing + batch import
+│   │   ├── leadService.ts         ← Business logic
+│   │   └── excelImportService.ts  ← Excel parsing + batch import
 │   ├── linkedin/
-│   │   ├── client.js              ← LinkedIn HTTP client (ONE request)
-│   │   └── parser.js              ← Entity graph → normalized profile
+│   │   ├── client.ts              ← LinkedIn HTTP client (ONE request)
+│   │   ├── parser.ts              ← Entity graph → normalized profile
+│   │   └── errors.ts              ← Typed error classes (code + httpStatus)
 │   ├── models/
-│   │   └── Lead.js                ← Mongoose schema
-│   └── app.js                     ← Express app setup
+│   │   └── Lead.ts                ← Mongoose schema
+│   ├── app.ts                     ← Express app setup (no port binding)
+│   ├── server.ts                  ← Local entry point — connects DB, listens
+│   ├── db.ts                      ← Cached Mongo connection + /api gate
+│   ├── config.ts                  ← Upload limit / runtime flags
+│   └── types.ts                   ← Shared response types
+├── public/
+│   └── index.html                 ← Static landing page served at /
 ├── docs/
 │   ├── architecture.md            ← System architecture
 │   ├── api-spec.md                ← Full REST API contract
 │   ├── data-model.md              ← MongoDB Lead document spec
 │   └── flow.md                    ← Request flow diagrams
 ├── test-linkedin-profile.js       ← Existing standalone parser/client PoC
+├── vercel.json                    ← Function config + catch-all rewrite
+├── .vercelignore                  ← Keeps .env and dist/ out of deployments
+├── tsconfig.json                  ← Build config (emits src/ → dist/)
+├── tsconfig.api.json              ← Typecheck config (also covers api/)
 ├── .env                           ← Local environment variables (gitignored)
 ├── .env.example                   ← Template — no real credentials
 ├── package.json
@@ -81,18 +95,90 @@ BATCH_CONCURRENCY=5
 
 | Variable              | Required | Default | Description                               |
 |-----------------------|----------|---------|-------------------------------------------|
-| `PORT`                | No       | 3000    | HTTP server port                          |
+| `PORT`                | No       | 3000    | HTTP server port (ignored on Vercel)      |
 | `MONGODB_URI`         | Yes      | —       | MongoDB connection string                 |
 | `LINKEDIN_LI_AT`      | Yes      | —       | LinkedIn session token                    |
 | `LINKEDIN_JSESSIONID` | Yes      | —       | LinkedIn CSRF / session token             |
 | `LINKEDIN_USER_AGENT` | Yes      | —       | Browser user-agent string                 |
 | `BATCH_CONCURRENCY`   | No       | 5       | Max parallel LinkedIn requests in imports |
+| `CORS_ORIGIN`         | No       | `*`     | Allowed browser origin — set to the frontend URL in production |
+| `MAX_UPLOAD_BYTES`    | No       | 10 MB locally, 4 MB on Vercel | Largest accepted import file; above it the API returns `400 INVALID_EXCEL` |
+
+Missing configuration degrades gracefully rather than crashing the process: an
+absent `MONGODB_URI` produces `DATABASE_ERROR` on `/api/*` requests, absent
+`LINKEDIN_*` values produce `LINKEDIN_AUTH_ERROR` on the endpoints that need
+LinkedIn, and `/health` keeps answering in both cases.
 
 **Security:**
 - These variables are read only inside the LinkedIn Client module
 - They are never returned via API responses
 - They are never logged
-- `.env` is gitignored — never commit credentials
+- `.env` is gitignored and `.vercelignore`d — never commit or upload credentials
+
+---
+
+## Deploying to Vercel
+
+The whole API deploys as a **single Vercel Function**. `api/index.ts` imports the
+same Express app that `npm run dev` uses, and `vercel.json` rewrites every path
+to it, so routing, validation and error shapes are identical in both runtimes —
+there is no second copy of the routing table to keep in sync. `public/index.html`
+is a static landing page served at `/`; everything else reaches the function.
+
+1. Push this folder to Git and import the repository in Vercel. If the repo also
+   contains the frontend, set **Root Directory** to `server`.
+2. Add the environment variables from the table above under **Settings →
+   Environment Variables** — at minimum `MONGODB_URI`, the three `LINKEDIN_*`
+   values, and `CORS_ORIGIN` set to the deployed frontend origin.
+3. `MONGODB_URI` has to point at a hosted database (e.g. MongoDB Atlas);
+   `localhost` is not reachable from a function. In Atlas → **Network Access**,
+   allow `0.0.0.0/0`, because function egress IPs are not stable.
+4. Deploy, then check `GET /health` — it answers even when the database is
+   unreachable, which makes it a useful first signal.
+5. Point the frontend's `VITE_API_BASE_URL` at `https://<deployment>.vercel.app`.
+
+No build step is required for the function itself — Vercel compiles
+`api/index.ts` directly. `npm run vercel-build` runs `tsc --project
+tsconfig.api.json`, which typechecks `src/` **and** `api/` without emitting, so a
+type error fails the deploy instead of shipping.
+
+### Platform limits that shape this deployment
+
+| Limit             | Value                      | Consequence                                                                                   |
+|-------------------|----------------------------|-----------------------------------------------------------------------------------------------|
+| Request body      | ~4.5 MB                    | Bodies above the platform cap are refused by Vercel before the function runs (a bare 413); `MAX_UPLOAD_BYTES` defaults to 4 MB so the app itself answers `400 INVALID_EXCEL` just below it |
+| Function duration | 60 s (Hobby)               | Set explicitly in `vercel.json`; raise it there if your plan allows more                               |
+| Filesystem        | read-only except `/tmp`    | Uploads use `multer.memoryStorage()`; nothing is written to disk                               |
+| Cold starts       | new container per idle gap | The connection promise is cached on `globalThis`, so warm invocations reuse one pool           |
+
+**Import timeouts are the real risk.** `POST /api/leads/import` fetches every new
+username from LinkedIn, `BATCH_CONCURRENCY` at a time (default 5). At a second or
+two per profile, a sheet with more than roughly a hundred new usernames can pass
+60 seconds and be terminated mid-run: leads already written stay in the database,
+but the caller gets a gateway timeout instead of the import summary. Keep sheets
+small on Vercel, split large ones across several uploads, or run bulk imports
+against a self-hosted instance, which has no duration cap.
+
+**LinkedIn blocks datacenter IPs — deploying does not fix `999`.** A `li_at`
+cookie is bound to the IP and session that created it, and cloud egress ranges
+are blocked far more aggressively than a residential connection. Expect the
+extraction paths (`POST /api/leads` for a new username, `/refresh`, and imports
+of unseen usernames) to return `502 LINKEDIN_UPSTREAM_ERROR` from Vercel, while
+every database-only endpoint keeps working normally. Live extraction needs the
+request to originate from an IP that LinkedIn already trusts for that session.
+
+### Local versus deployed
+
+| | Local (`npm run dev`) | Vercel |
+|---|---|---|
+| Entry point   | `src/server.ts` (binds a port) | `api/index.ts` (no port)     |
+| DB connection | Once at boot                  | Per request, cached on `globalThis` |
+| Upload limit  | 10 MB                         | 4 MB                         |
+| Duration      | Unbounded                     | 60 s                         |
+
+To self-host instead, `npm run build && npm start` still works exactly as
+before — `tsconfig.json` emits `src/` to `dist/`, and `dist/server.js` remains
+the entry point.
 
 ---
 

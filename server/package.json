@@ -6,10 +6,14 @@
   "main": "dist/server.js",
   "scripts": {
     "build":        "tsc --project tsconfig.json",
+    "vercel-build": "tsc --project tsconfig.api.json",
     "dev":          "tsx watch src/server.ts",
     "start":        "node dist/server.js",
-    "type-check":   "tsc --noEmit",
+    "type-check":   "tsc --project tsconfig.api.json",
     "test-profile": "node test-linkedin-profile.js"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "dependencies": {
     "cors":     "^2.8.6",

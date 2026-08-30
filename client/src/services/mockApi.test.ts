@@ -56,7 +56,7 @@ describe('POST /api/leads — createOrGetLead', () => {
   });
 
   it('returns a lead the fixtures already contain without touching LinkedIn', async () => {
-    const result = await createOrGetLead('ritik-joshi-sde');
+    const result = await createOrGetLead('ritik-sde');
     expect(result.source).toBe('database');
     expect(result.lead.profile?.firstName).toBe('Ritik');
   });
@@ -95,8 +95,8 @@ describe('POST /api/leads — createOrGetLead', () => {
 
 describe('GET /api/leads/:username — getLead', () => {
   it('returns a stored lead', async () => {
-    const lead = await getLead('ritik-joshi-sde');
-    expect(lead.username).toBe('ritik-joshi-sde');
+    const lead = await getLead('ritik-sde');
+    expect(lead.username).toBe('ritik-sde');
     expect(Array.isArray(lead.experience)).toBe(true);
   });
 
@@ -107,10 +107,10 @@ describe('GET /api/leads/:username — getLead', () => {
   });
 
   it('hands back a copy, so the caller cannot mutate the store', async () => {
-    const first = await getLead('ritik-joshi-sde');
+    const first = await getLead('ritik-sde');
     first.username = 'tampered';
-    const second = await getLead('ritik-joshi-sde');
-    expect(second.username).toBe('ritik-joshi-sde');
+    const second = await getLead('ritik-sde');
+    expect(second.username).toBe('ritik-sde');
   });
 });
 
@@ -162,8 +162,8 @@ describe('GET /api/leads — getLeads', () => {
 
 describe('GET /api/leads/search — searchLeads', () => {
   it('matches on the username', async () => {
-    const { leads } = await searchLeads('ritik-joshi-sde');
-    expect(leads.some((lead) => lead.username === 'ritik-joshi-sde')).toBe(true);
+    const { leads } = await searchLeads('ritik-sde');
+    expect(leads.some((lead) => lead.username === 'ritik-sde')).toBe(true);
   });
 
   it('matches on name and on current company, case-insensitively', async () => {
@@ -286,7 +286,7 @@ describe('POST /api/leads/import — importLeads', () => {
     const file = csv(
       [
         'username,notes',
-        'ritik-joshi-sde,already stored',
+        'ritik-sde,already stored',
         'mock-import-brand-new,',
         'mock-import-brand-new,duplicate row',
         'bad-user-404,unreachable',

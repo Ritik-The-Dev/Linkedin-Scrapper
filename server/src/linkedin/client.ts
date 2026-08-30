@@ -15,14 +15,21 @@ import {
 } from './errors.js';
 
 // ---------------------------------------------------------------------------
-// Credentials — read once at module load, never exported
+// Credentials — read per call, never exported, never logged
+//
+// Read lazily rather than at module load: in a serverless deployment this
+// module is imported during a cold start, and throwing there would fail every
+// route in the function (including /health) with an opaque 500 instead of a
+// typed LINKEDIN_AUTH_ERROR on the one endpoint that actually needs LinkedIn.
 // ---------------------------------------------------------------------------
-const LI_AT      = process.env['LINKEDIN_LI_AT']      ?? '';
-const JSESSIONID = process.env['LINKEDIN_JSESSIONID'] ?? '';
-const USER_AGENT = process.env['LINKEDIN_USER_AGENT'] ?? '';
 
-// Strip surrounding quotes that some .env readers add to JSESSIONID
-const CSRF_TOKEN = JSESSIONID.replace(/^"(.*)"$/, '$1');
+interface LinkedInCredentials {
+  liAt: string;
+  jsessionId: string;
+  userAgent: string;
+  /** JSESSIONID with the surrounding quotes some .env readers add stripped off. */
+  csrfToken: string;
+}
 
 const VOYAGER_ENDPOINT = 'https://www.linkedin.com/voyager/api/identity/dash/profiles';
 const DECORATION_ID    = 'com.linkedin.voyager.dash.deco.identity.profile.FullProfileWithEntities-101';
@@ -32,19 +39,29 @@ const DECORATION_ID    = 'com.linkedin.voyager.dash.deco.identity.profile.FullPr
 // ---------------------------------------------------------------------------
 const DEBUG = process.env['DEBUG_LINKEDIN'] === 'true';
 
-function assertCredentials(): void {
+function readCredentials(): LinkedInCredentials {
+  const liAt       = process.env['LINKEDIN_LI_AT']      ?? '';
+  const jsessionId = process.env['LINKEDIN_JSESSIONID'] ?? '';
+  const userAgent  = process.env['LINKEDIN_USER_AGENT'] ?? '';
+
   const missing: string[] = [];
-  if (!LI_AT)      missing.push('LINKEDIN_LI_AT');
-  if (!JSESSIONID) missing.push('LINKEDIN_JSESSIONID');
-  if (!USER_AGENT) missing.push('LINKEDIN_USER_AGENT');
+  if (!liAt)       missing.push('LINKEDIN_LI_AT');
+  if (!jsessionId) missing.push('LINKEDIN_JSESSIONID');
+  if (!userAgent)  missing.push('LINKEDIN_USER_AGENT');
+
   if (missing.length > 0) {
-    throw new Error(
-      `Missing required LinkedIn credentials: ${missing.join(', ')}. Set them as environment variables.`
+    throw new LinkedInAuthError(
+      `Missing LinkedIn session configuration: ${missing.join(', ')}. Set these as environment variables.`
     );
   }
-}
 
-assertCredentials();
+  return {
+    liAt,
+    jsessionId,
+    userAgent,
+    csrfToken: jsessionId.replace(/^"(.*)"$/, '$1'),
+  };
+}
 
 /**
  * Fetch a LinkedIn profile by public identifier.
@@ -58,7 +75,7 @@ assertCredentials();
  *   2. Request headers look too bare / non-browser-like.
  *      Fix: the full browser header set is sent below.
  *
- * @throws {LinkedInAuthError}             on HTTP 401
+ * @throws {LinkedInAuthError}             on HTTP 401, or when credentials are not configured
  * @throws {LinkedInForbiddenError}        on HTTP 403
  * @throws {LinkedInRateLimitError}        on HTTP 429
  * @throws {LinkedInProfileNotFoundError}  on HTTP 404 or 200+empty
@@ -67,6 +84,8 @@ assertCredentials();
 export async function fetchLinkedInProfile(
   publicIdentifier: string
 ): Promise<Record<string, unknown>> {
+  const { liAt, jsessionId, userAgent, csrfToken } = readCredentials();
+
   const params = new URLSearchParams({
     q:              'memberIdentity',
     memberIdentity: publicIdentifier,
@@ -87,13 +106,13 @@ export async function fetchLinkedInProfile(
       headers: {
         // ── Required Voyager headers ──────────────────────────────────────
         'accept':                    'application/vnd.linkedin.normalized+json+2.1',
-        'csrf-token':                CSRF_TOKEN,
+        'csrf-token':                csrfToken,
         'x-restli-protocol-version': '2.0.0',
 
         // ── Browser identity headers ──────────────────────────────────────
         // These are critical — LinkedIn 999 fires when the request looks
         // too bare compared to a real browser session.
-        'user-agent':      USER_AGENT,
+        'user-agent':      userAgent,
         'accept-language': 'en-US,en;q=0.9',
         'accept-encoding': 'gzip, deflate, br',
         'sec-fetch-dest':  'empty',
@@ -120,7 +139,7 @@ export async function fetchLinkedInProfile(
         // ── Session cookies ───────────────────────────────────────────────
         // li_at  = authentication token
         // JSESSIONID = CSRF token (must also appear in csrf-token header)
-        'cookie': `li_at=${LI_AT}; JSESSIONID="${JSESSIONID}"`,
+        'cookie': `li_at=${liAt}; JSESSIONID="${jsessionId}"`,
       },
     });
   } catch (networkErr) {

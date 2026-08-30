@@ -107,7 +107,7 @@ function Hero() {
                   type="text"
                   value={value}
                   onChange={(event) => setValue(event.target.value)}
-                  placeholder="linkedin.com/in/ritik-joshi-sde"
+                  placeholder="linkedin.com/in/ritik-sde"
                   autoComplete="off"
                   spellCheck={false}
                   enterKeyHint="go"
@@ -180,8 +180,8 @@ function Hero() {
  * comes out, and that is what reaches the API.
  */
 function NormalisationCard({ typed, preview }: { typed: string; preview: string | null }) {
-  const shown = typed.trim().length > 0 ? typed.trim() : 'https://www.linkedin.com/in/ritik-joshi-sde/';
-  const username = preview ?? 'ritik-joshi-sde';
+  const shown = typed.trim().length > 0 ? typed.trim() : 'https://www.linkedin.com/in/ritik-sde/';
+  const username = preview ?? 'ritik-sde';
 
   return (
     <div className="max-w-3xl overflow-hidden rounded-2xl border border-line bg-white/90 shadow-lift backdrop-blur">
@@ -340,7 +340,7 @@ function WhatYouGet() {
                 </span>
                 <div className="min-w-0">
                   <p className="truncate font-display font-semibold text-ink">Ritik Joshi</p>
-                  <p className="slug truncate">/in/ritik-joshi-sde</p>
+                  <p className="slug truncate">/in/ritik-sde</p>
                 </div>
               </div>
 
@@ -413,7 +413,7 @@ function BulkImport() {
                 </tr>
               </thead>
               <tbody className="font-mono text-2xs">
-                <ExampleRow username="ritik-joshi-sde" status="New" tone="ok" />
+                <ExampleRow username="ritik-sde" status="New" tone="ok" />
                 <ExampleRow username="ritikjoshi" status="Existing" tone="cache" />
                 <ExampleRow username="aarav-mehta-dev" status="New" tone="ok" />
                 <ExampleRow username="not-a-real-user" status="Failed" tone="bad" />

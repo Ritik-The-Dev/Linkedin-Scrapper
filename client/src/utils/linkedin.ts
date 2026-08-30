@@ -5,7 +5,7 @@
  * must only ever receive `{ "username": "<slug>" }`, never a full URL.
  *
  * Hyphens are part of the slug and are always preserved:
- *   linkedin.com/in/ritik-joshi-sde  →  ritik-joshi-sde
+ *   linkedin.com/in/ritik-sde  →  ritik-sde
  *   linkedin.com/in/ritik-joshi        →  ritik-joshi
  *
  * The extraction logic below is pure, so it can be unit tested in isolation; the

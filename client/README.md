@@ -151,7 +151,7 @@ calls `fetch`. There are eight functions, one per documented endpoint, and no ot
 
 | Function                          | Endpoint                              | Notes                                                              |
 | --------------------------------- | ------------------------------------- | ------------------------------------------------------------------ |
-| `createOrGetLead(username, signal?)` | `POST /api/leads`                  | Body is `{ "username": "ritik-joshi-sde" }` — a bare username, never a URL. Resolves `{ lead, source }` where `source` is `"database"` or `"linkedin"`. 90 s timeout. |
+| `createOrGetLead(username, signal?)` | `POST /api/leads`                  | Body is `{ "username": "ritik-sde" }` — a bare username, never a URL. Resolves `{ lead, source }` where `source` is `"database"` or `"linkedin"`. 90 s timeout. |
 | `getLeads(page?, limit?, signal?)`   | `GET /api/leads`                   | `limit` is clamped to 10. Returns `{ leads, pagination }`.          |
 | `searchLeads(q, page?, limit?, signal?)` | `GET /api/leads/search`        | Database only. Same result shape as `getLeads`.                     |
 | `getLead(username, signal?)`         | `GET /api/leads/:username`         | Stored profile; never triggers a LinkedIn fetch.                    |
@@ -241,7 +241,7 @@ sub-route (`search`, `import`, `stats`). Failures come back as a discriminated u
 code, so the form can explain what was wrong instead of showing a generic message.
 
 One note on the spec: its example table maps `linkedin.com/in/ritik-joshi/` to `ritikjoshi`, which
-contradicts the row above it (`ritik-joshi-sde` keeps its hyphens) and the API contract, which
+contradicts the row above it (`ritik-sde` keeps its hyphens) and the API contract, which
 allows `-` in a username. Hyphens are therefore preserved byte for byte — the username is the
 backend's primary key, and silently mangling it would make every lookup miss. A named test documents
 this decision.

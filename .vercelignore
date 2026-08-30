@@ -1,0 +1,15 @@
+# Development artifacts
+server/dist/
+client/dist/
+
+# Dependencies — Vercel installs these during build
+server/node_modules/
+client/node_modules/
+
+# Test and raw data files
+server/test-linkedin-profile.js
+server/raw-linkedin-response.json
+server/flow.md
+
+# Docs (not needed at runtime)
+server/docs/

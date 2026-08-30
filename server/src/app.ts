@@ -7,6 +7,9 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import cors     from 'cors';
 import leadsRouter from './routes/leads.js';
+import { ensureDbConnection } from './db.js';
+import { MAX_UPLOAD_LABEL } from './config.js';
+import { isAppError } from './linkedin/errors.js';
 
 const app = express();
 
@@ -24,7 +27,8 @@ app.use(cors({
 }));
 
 // ---------------------------------------------------------------------------
-// Health check
+// Health check — deliberately mounted before the database gate so it answers
+// even when MongoDB is unreachable.
 // ---------------------------------------------------------------------------
 
 app.get('/health', (_req: Request, res: Response) => {
@@ -34,6 +38,11 @@ app.get('/health', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // API routes
 // ---------------------------------------------------------------------------
+
+// Every /api request awaits the shared connection first. On a long-lived
+// server this is a no-op after boot; in a serverless function it is what makes
+// a cold start work without a per-invocation connect.
+app.use('/api', ensureDbConnection);
 
 app.use('/api/leads', leadsRouter);
 
@@ -54,12 +63,22 @@ app.use((_req: Request, res: Response) => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  // Typed application errors (e.g. DATABASE_ERROR from the connection gate)
+  // keep the documented { success, error: { code, message } } shape.
+  if (isAppError(err)) {
+    res.status(err.httpStatus).json({
+      success: false,
+      error: { code: err.code, message: err.message },
+    });
+    return;
+  }
+
   const multerErr = err as { code?: string; message?: string };
 
   if (multerErr.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({
       success: false,
-      error: { code: 'INVALID_EXCEL', message: 'Uploaded file exceeds the 10 MB size limit' },
+      error: { code: 'INVALID_EXCEL', message: `Uploaded file exceeds the ${MAX_UPLOAD_LABEL} size limit` },
     });
     return;
   }

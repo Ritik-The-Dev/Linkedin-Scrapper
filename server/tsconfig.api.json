@@ -1,0 +1,18 @@
+{
+  // Typecheck-only project that ALSO covers the Vercel entry point in api/.
+  //
+  // api/index.ts cannot live in the main tsconfig: that project emits to dist/
+  // with rootDir "./src", and a file outside rootDir is a hard tsc error.
+  // Vercel compiles api/index.ts itself (esbuild), so it never needs a tsc
+  // build — it only needs to be type-safe. Hence noEmit.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
+  },
+  "include": ["src/**/*", "api/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

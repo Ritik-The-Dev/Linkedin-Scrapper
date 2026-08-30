@@ -284,7 +284,7 @@ describe('initialsOf', () => {
   });
 
   it('splits a username on its separators', () => {
-    expect(initialsOf('ritik-joshi-sde')).toBe('RS');
+    expect(initialsOf('ritik-sde')).toBe('RS');
     expect(initialsOf('john.doe')).toBe('JD');
   });
 

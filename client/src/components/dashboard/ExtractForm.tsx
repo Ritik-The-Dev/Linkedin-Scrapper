@@ -124,7 +124,7 @@ export function ExtractForm({ onExtracted, initialValue = '' }: ExtractFormProps
                 setError(null);
               }}
               onBlur={() => setShowInputError(true)}
-              placeholder="https://www.linkedin.com/in/ritik-joshi-sde/"
+              placeholder="https://www.linkedin.com/in/ritik-sde/"
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="go"

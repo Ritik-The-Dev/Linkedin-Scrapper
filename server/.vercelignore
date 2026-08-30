@@ -1,0 +1,18 @@
+# Never upload local secrets — set these in the Vercel project settings instead.
+.env
+.env.*
+!.env.example
+
+# Build output: Vercel compiles api/index.ts itself, dist/ is only for
+# self-hosted `npm start`.
+dist
+
+# Local scratch / dev-only files
+node_modules
+coverage
+raw-linkedin-response.json
+test-linkedin-profile.js
+docs
+flow.md
+.git
+.vscode

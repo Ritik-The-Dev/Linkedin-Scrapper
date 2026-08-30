@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>LinkedIn Lead Extractor API</title>
+    <style>
+      :root { color-scheme: light; --brand: #0a5bd3; --ink: #0f172a; --muted: #5b6577; --line: #e3e8ef; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 32px;
+        background: #f7f9fc; color: var(--ink);
+        font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main { width: 100%; max-width: 34rem; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 28px 30px; }
+      .tag { display: inline-block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); font-weight: 600; }
+      h1 { font-size: 22px; margin: 6px 0 4px; letter-spacing: -0.01em; }
+      p { color: var(--muted); margin: 0 0 20px; }
+      ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+      li { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+      .verb { min-width: 3.6rem; color: var(--brand); font-weight: 600; font-size: 12px; letter-spacing: .04em; }
+      a { color: var(--brand); }
+      footer { margin-top: 18px; font-size: 13px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="tag">Backend</span>
+      <h1>LinkedIn Lead Extractor API</h1>
+      <p>This deployment serves the REST API only. There is no UI here — point the frontend at this origin.</p>
+      <ul>
+        <li><span class="verb">GET</span> <code><a href="/health">/health</a></code></li>
+        <li><span class="verb">POST</span> <code>/api/leads</code></li>
+        <li><span class="verb">GET</span> <code>/api/leads</code></li>
+        <li><span class="verb">GET</span> <code>/api/leads/search?q=</code></li>
+        <li><span class="verb">GET</span> <code>/api/leads/stats</code></li>
+        <li><span class="verb">GET</span> <code>/api/leads/:username</code></li>
+        <li><span class="verb">POST</span> <code>/api/leads/:username/refresh</code></li>
+        <li><span class="verb">POST</span> <code>/api/leads/import</code></li>
+        <li><span class="verb">DELETE</span> <code>/api/leads/:username</code></li>
+      </ul>
+      <footer>Start with <code><a href="/health">/health</a></code> to confirm the function is live.</footer>
+    </main>
+  </body>
+</html>

@@ -30,16 +30,16 @@ function reasonFor(input: string): string {
 
 describe('normalizeLinkedInInput — full URLs', () => {
   it('extracts the slug from a canonical profile URL', () => {
-    expect(ok('https://www.linkedin.com/in/ritik-joshi-sde')).toBe('ritik-joshi-sde');
+    expect(ok('https://www.linkedin.com/in/ritik-sde')).toBe('ritik-sde');
   });
 
   it('tolerates a trailing slash', () => {
-    expect(ok('https://www.linkedin.com/in/ritik-joshi-sde/')).toBe('ritik-joshi-sde');
+    expect(ok('https://www.linkedin.com/in/ritik-sde/')).toBe('ritik-sde');
   });
 
   it('drops query strings and tracking parameters', () => {
-    expect(ok('https://www.linkedin.com/in/ritik-joshi-sde/?originalSubdomain=in')).toBe(
-      'ritik-joshi-sde',
+    expect(ok('https://www.linkedin.com/in/ritik-sde/?originalSubdomain=in')).toBe(
+      'ritik-sde',
     );
     expect(ok('https://linkedin.com/in/john-doe?trk=public_profile_browsemap')).toBe('john-doe');
   });
@@ -69,7 +69,7 @@ describe('normalizeLinkedInInput — full URLs', () => {
   });
 
   it('lowercases the slug, since the backend key is lowercase', () => {
-    expect(ok('https://www.linkedin.com/in/Ritik-Joshi-SDE')).toBe('ritik-joshi-sde');
+    expect(ok('https://www.linkedin.com/in/ritik-sde')).toBe('ritik-sde');
   });
 
   it('trims whitespace and the brackets a chat client wraps a link in', () => {
@@ -101,12 +101,12 @@ describe('normalizeLinkedInInput — full URLs', () => {
 
 describe('normalizeLinkedInInput — bare usernames', () => {
   it('accepts a plain username unchanged', () => {
-    expect(ok('ritik-joshi-sde')).toBe('ritik-joshi-sde');
+    expect(ok('ritik-sde')).toBe('ritik-sde');
   });
 
   it('preserves every hyphen — the username is the backend primary key', () => {
     // The spec's example table shows `ritik-joshi` losing its hyphen, which
-    // contradicts the `ritik-joshi-sde` row directly above it. The API
+    // contradicts the `ritik-sde` row directly above it. The API
     // contract allows `-`, so the slug is passed through byte for byte.
     expect(ok('https://linkedin.com/in/ritik-joshi/')).toBe('ritik-joshi');
     expect(ok('ritik-joshi')).toBe('ritik-joshi');

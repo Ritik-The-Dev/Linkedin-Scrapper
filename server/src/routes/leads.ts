@@ -7,13 +7,15 @@
 import { Router } from 'express';
 import multer     from 'multer';
 import * as ctrl  from '../controllers/leadController.js';
+import { MAX_UPLOAD_BYTES } from '../config.js';
 
 const router = Router();
 
-// In-memory file storage — no disk writes
+// In-memory file storage — no disk writes (a serverless filesystem is read-only
+// apart from /tmp, and the parser only ever needs the buffer).
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
   fileFilter: (_req, file, cb) => {
     const ext = (file.originalname ?? '').split('.').pop()?.toLowerCase() ?? '';
     if (['xlsx', 'xls', 'csv'].includes(ext)) return cb(null, true);

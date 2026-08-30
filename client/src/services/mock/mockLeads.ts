@@ -227,7 +227,7 @@ function role(partial: Partial<Experience>): Experience {
  * ------------------------------------------------------------------ */
 
 const ritikSde: Lead = seedLead({
-  username: 'ritik-joshi-sde',
+  username: 'ritik-sde',
   firstName: 'Ritik',
   lastName: 'Joshi',
   headline: 'Software Engineer 2 at Akamai Technologies',
@@ -780,7 +780,7 @@ export const MOCK_LINKEDIN_FAILURES: Record<string, string> = {
 
 /** Usernames used when a mock import receives a binary .xlsx it cannot parse. */
 export const MOCK_DEMO_USERNAMES = [
-  'ritik-joshi-sde',
+  'ritik-sde',
   'ritikjoshi',
   'rohit-paneru',
   'aarav-mehta-dev',
