@@ -13,6 +13,7 @@ import {
   relativeTime,
 } from '../../utils/formatters.ts';
 import { Avatar } from '../common/Avatar.tsx';
+import { CopyJsonButton } from '../common/CopyJsonButton.tsx';
 import { BriefcaseIcon, ClockIcon, PinIcon } from '../common/icons.tsx';
 import { StatusBadges } from './StatusBadges.tsx';
 
@@ -56,6 +57,7 @@ export function LeadCard({ lead, highlight = false, className }: LeadCardProps) 
         <Avatar src={profileImageOf(lead, 200)} name={name} size="md" />
 
         <div className="min-w-0 flex-1">
+          <div className='flex items-start justify-between w-full'>
           <h3 className="truncate text-[0.9375rem] font-semibold text-ink">
             <Link
               to={`/leads/${encodeURIComponent(lead.username)}`}
@@ -64,6 +66,10 @@ export function LeadCard({ lead, highlight = false, className }: LeadCardProps) 
               {name}
             </Link>
           </h3>
+          <span className="relative z-10 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+            <CopyJsonButton data={lead} variant="icon" />
+          </span>
+          </div>
           <p className="slug mt-0.5 truncate">{lead.username}</p>
 
           {headline !== null ? (
@@ -100,12 +106,14 @@ export function LeadCard({ lead, highlight = false, className }: LeadCardProps) 
             {skillCount} skill{skillCount === 1 ? '' : 's'}
           </span>
         ) : null}
-        {seen !== null ? (
-          <span className="ml-auto inline-flex items-center gap-1 text-2xs text-ink-faint">
-            <ClockIcon className="size-3" />
-            {seen}
-          </span>
-        ) : null}
+        <div className="ml-auto flex items-center gap-2">
+          {seen !== null ? (
+            <span className="inline-flex items-center gap-1 text-2xs text-ink-faint">
+              <ClockIcon className="size-3" />
+              {seen}
+            </span>
+          ) : null}
+        </div>
       </div>
     </article>
   );

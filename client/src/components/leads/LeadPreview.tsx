@@ -7,6 +7,7 @@ import { fullNameOf } from '../../utils/formatters.ts';
 import { profileUrlOf } from '../../utils/linkedin.ts';
 import { Badge } from '../common/Badge.tsx';
 import { Button, ButtonLink, ExternalButtonLink } from '../common/Button.tsx';
+import { CopyJsonButton } from '../common/CopyJsonButton.tsx';
 import { ArrowRightIcon, BoltIcon, DatabaseIcon, ExternalIcon } from '../common/icons.tsx';
 import { AboutSection } from './AboutSection.tsx';
 import { EducationSection } from './EducationSection.tsx';
@@ -68,6 +69,7 @@ export function LeadPreview({ lead, source, onDismiss }: LeadPreviewProps) {
           >
             View LinkedIn Profile
           </ExternalButtonLink>
+          <CopyJsonButton data={lead} variant="label" />
           {onDismiss !== undefined ? (
             <Button variant="ghost" size="sm" onClick={onDismiss}>
               Dismiss

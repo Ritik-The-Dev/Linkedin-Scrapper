@@ -18,6 +18,7 @@ import {
 import { profileUrlOf } from '../../utils/linkedin.ts';
 import { Avatar } from '../common/Avatar.tsx';
 import { CopyButton } from '../common/CopyButton.tsx';
+import { CopyJsonButton } from '../common/CopyJsonButton.tsx';
 import { StatusBadges } from './StatusBadges.tsx';
 import { BriefcaseIcon, ClockIcon, GlobeIcon, PinIcon, UsersIcon } from '../common/icons.tsx';
 
@@ -167,6 +168,7 @@ export function ProfileHeader({ lead, actions, compact = false }: ProfileHeaderP
           >
             {profileUrl.replace(/^https:\/\//, '')}
           </a>
+          <CopyJsonButton data={lead} variant="label" />
         </div>
       </div>
     </header>
