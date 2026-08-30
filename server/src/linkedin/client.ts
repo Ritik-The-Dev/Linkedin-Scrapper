@@ -39,6 +39,39 @@ const DECORATION_ID    = 'com.linkedin.voyager.dash.deco.identity.profile.FullPr
 // ---------------------------------------------------------------------------
 const DEBUG = process.env['DEBUG_LINKEDIN'] === 'true';
 
+// ---------------------------------------------------------------------------
+// Global LinkedIn request throttle
+//
+// Ensures a minimum gap between consecutive LinkedIn API calls regardless
+// of which endpoint or caller triggered them. This reduces the chance of
+// bot-detection (status 999) from rapid sequential requests.
+//
+// Default: 5 000 ms. Override with LINKEDIN_MIN_GAP_MS env var.
+// ---------------------------------------------------------------------------
+const MIN_GAP_MS = Math.max(
+  parseInt(process.env['LINKEDIN_MIN_GAP_MS'] ?? '5000', 10) || 5000,
+  0
+);
+
+/** Timestamp (Date.now()) of the last completed LinkedIn HTTP request. */
+let lastRequestAt = 0;
+
+/**
+ * Wait until at least MIN_GAP_MS have elapsed since the last LinkedIn request.
+ * Returns immediately if the gap has already been satisfied.
+ */
+async function waitForThrottle(): Promise<void> {
+  if (MIN_GAP_MS === 0) return;
+
+  const elapsed = Date.now() - lastRequestAt;
+  const wait    = MIN_GAP_MS - elapsed;
+
+  if (wait > 0) {
+    if (DEBUG) process.stderr.write(`[linkedin/throttle] waiting ${wait}ms before next request\n`);
+    await new Promise<void>((resolve) => setTimeout(resolve, wait));
+  }
+}
+
 function readCredentials(): LinkedInCredentials {
   const liAt       = process.env['LINKEDIN_LI_AT']      ?? '';
   const jsessionId = process.env['LINKEDIN_JSESSIONID'] ?? '';
@@ -86,6 +119,9 @@ export async function fetchLinkedInProfile(
 ): Promise<Record<string, unknown>> {
   const { liAt, jsessionId, userAgent, csrfToken } = readCredentials();
 
+  // ── Throttle — enforce minimum gap between LinkedIn requests ─────────────
+  await waitForThrottle();
+
   const params = new URLSearchParams({
     q:              'memberIdentity',
     memberIdentity: publicIdentifier,
@@ -116,6 +152,10 @@ export async function fetchLinkedInProfile(
       `Network error contacting LinkedIn: ${(networkErr as Error).message}`
     );
   }
+
+  // Record the time immediately after the request lands so the next caller
+  // waits the full gap even if this request ends in an error.
+  lastRequestAt = Date.now();
 
   if (DEBUG) {
     process.stderr.write(
