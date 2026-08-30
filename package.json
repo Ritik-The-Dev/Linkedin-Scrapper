@@ -1,0 +1,9 @@
+{
+  "name": "linkedin-scrapper",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "LinkedIn Voyager API reverse-engineering PoC",
+  "scripts": {
+    "test-profile": "node test-linkedin-profile.js"
+  }
+}
