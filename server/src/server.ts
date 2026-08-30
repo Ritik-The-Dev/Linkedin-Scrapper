@@ -2,9 +2,6 @@
  * src/server.ts
  * Entry point — loads .env, connects to MongoDB, starts HTTP server.
  */
-// import dns from "node:dns";
-
-// dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 import 'dotenv/config';
 import { connectDB } from './db.js';
