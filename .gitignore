@@ -1,0 +1,12 @@
+# Environment — never commit real credentials
+.env
+
+# Raw LinkedIn responses may contain personal data
+raw-linkedin-response.json
+
+# Dependencies
+node_modules/
+
+# Test coverage / build artifacts
+coverage/
+dist/
