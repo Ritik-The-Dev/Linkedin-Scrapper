@@ -1,5 +1,9 @@
 # LinkedIn Lead Extractor
 
+## Overview
+
+📺 [Watch the Overview Video](./overview.mkv)
+
 Extract, store and browse LinkedIn profiles through a clean REST API and React frontend — without using any third-party LinkedIn SDK.
 
 ```
